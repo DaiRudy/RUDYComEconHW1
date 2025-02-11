@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
 from scipy.linalg import eig
 
 def rouwenhorst(n, rho, sigma):
@@ -68,9 +69,17 @@ df_stationary = pd.DataFrame({"y_grid": y_grid, "Stationary Distribution": stati
 print("\nStationary Distribution:")
 print(df_stationary)
 
-# Step 6: Plot the stationary distribution
+# Step 6: Plot the transition matrix as a heatmap
+plt.figure(figsize=(10, 8))
+sns.heatmap(P, annot=True, cmap="coolwarm", fmt=".2f", xticklabels=np.round(y_grid, 2), yticklabels=np.round(y_grid, 2))
+plt.title("Transition Matrix Heatmap (Rouwenhorst Approximation)")
+plt.xlabel("Next State")
+plt.ylabel("Current State")
+plt.show()
+
+# Step 7: Plot the stationary distribution
 plt.figure(figsize=(8, 6))
-plt.bar(y_grid, stationary_dist, width=0.5*(y_grid[1] - y_grid[0]), alpha=0.7, color='blue', edgecolor='black')
+plt.bar(y_grid, stationary_dist, width=(y_grid[1] - y_grid[0]), alpha=0.7, color='blue', edgecolor='black')
 plt.xlabel("$y_i$ (Discretized states)")
 plt.ylabel("Stationary Probability")
 plt.title("Stationary Distribution of $y_t$ using Rouwenhorst Approximation")

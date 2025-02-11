@@ -130,11 +130,11 @@ var_y  = np.var(y_final)
 corr_zy = np.corrcoef(z_final, y_final)[0, 1]
 
 # Printing Results
-print("Mean of z:          ", mean_z)
-print("Variance of z:      ", var_z)
-print("Mean of y:          ", mean_y)
-print("Variance of y:      ", var_y)
-print("Correlation(z, y):  ", corr_zy)
+print("Mean of z:          {:.3g}", mean_z)
+print("Variance of z:      {:.3g}", var_z)
+print("Mean of y:          {:.3g}", mean_y)
+print("Variance of y:      {:.3g}", var_y)
+print("Correlation(z, y):  {:.3g}", corr_zy)
 
 # ----------------------------
 # Two-dimensional (z, w) statistics
@@ -156,8 +156,8 @@ var_w  = np.var(w_final)
 corr_zw = np.corrcoef(z_final, w_final)[0, 1]
 
 # Print results
-print("Mean of z:          ", mean_z)
-print("Variance of z:      ", var_z)
-print("Mean of w:          ", mean_w)
-print("Variance of w:      ", var_w)
-print("Correlation(z, w):  ", corr_zw)
+print("Mean of z:          {:.3g}".format(mean_z))
+print("Variance of z:      {:.3g}".format(var_z))
+print("Mean of w:          {:.3g}".format(mean_w))
+print("Variance of w:      {:.3g}".format(var_w))
+print("Correlation(z, w):  {:.3g}".format(corr_zw))

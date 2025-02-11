@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.stats import norm
-import matplotlib.pyplot as plt  # Import matplotlib for plotting
+import matplotlib.pyplot as plt
+import seaborn as sns  # Import seaborn for better heatmap visualization
 
 # Parameter settings
 n_states = 11
@@ -48,4 +49,12 @@ plt.title('Steady State Distribution')
 plt.xlabel('State')
 plt.ylabel('Probability')
 plt.grid(True)
+plt.show()
+
+# Plot the transition matrix as a heatmap
+plt.figure(figsize=(10, 8))
+sns.heatmap(transition_matrix, annot=True, cmap="coolwarm", fmt=".2f", xticklabels=np.round(y_grid, 2), yticklabels=np.round(y_grid, 2))
+plt.title("Transition Matrix Heatmap")
+plt.xlabel("Next State")
+plt.ylabel("Current State")
 plt.show()

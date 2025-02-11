@@ -160,9 +160,6 @@ def build_nonstochastic_sequence(P, pi, T):
             trans[i, j_star] -= extra
 
     # Step C: (Simplified) Find a path from the graph
-    # If in-degrees and out-degrees match exactly, one can use Hierholzer's algorithm to find an Eulerian path.
-    # Here we use a greedy approach: starting from the state that appears most frequently,
-    # sequentially find an edge to a state that still has remaining transitions.
     graph = trans.copy()
     start = np.argmax(visits)
     z_seq = [start]
@@ -178,7 +175,7 @@ def build_nonstochastic_sequence(P, pi, T):
                 continue
             else:
                 break
-        # Choose the edge with the largest remaining count (or highest probability)
+        # Choose the edge with the largest remaining count
         j_star = np.argmax(row)
         graph[cur, j_star] -= 1
         cur = j_star
@@ -270,22 +267,80 @@ if __name__ == "__main__":
     final_wealths = np.array(final_wealths)  # Shape: (201*50,) = (10050,)
     final_zs = np.array(final_zs)
 
-    # ---------- (4) Plot the stationary distribution of final wealth (1D histogram) ----------
+    # ---------- (4) Discretize final wealth ----------
+    # It is stipulated that the final wealth can only be 0, 4, 8, ...; 
+    # if the wealth value obtained by a simulation is not at these points, it will be distributed according to the linear weight based on the distance
+    w_min = 0
+    w_max = np.ceil(final_wealths.max() / 4) * 4
+    w_grid_discrete = np.arange(w_min, w_max + 4, 4)
+    w_distribution = np.zeros(len(w_grid_discrete))
+
+    for w in final_wealths:
+        # If the simulation result is less than the minimum discrete point or greater than the maximum discrete point, it is directly classified as a boundary
+        if w <= w_grid_discrete[0]:
+            w_distribution[0] += 1
+        elif w >= w_grid_discrete[-1]:
+            w_distribution[-1] += 1
+        else:
+            # Find w between [lower, upper]
+            idx = np.searchsorted(w_grid_discrete, w) - 1
+            lower = w_grid_discrete[idx]
+            upper = w_grid_discrete[idx + 1]
+            # Linear interpolation weights
+            weight_lower = (upper - w) / (upper - lower)
+            weight_upper = (w - lower) / (upper - lower)
+            w_distribution[idx] += weight_lower
+            w_distribution[idx + 1] += weight_upper
+
+    # Normalized to get probability distribution
+    w_distribution /= len(final_wealths)
+
+    # ---------- (5) Plot the discrete distribution of final wealth ----------
     plt.figure(figsize=(8, 6))
-    plt.hist(final_wealths, bins=50, density=True, alpha=0.7, edgecolor='k')
-    plt.xlabel("Final Wealth")
-    plt.ylabel("Density")
-    plt.title("Histogram of Final Wealth Distribution")
+    plt.bar(w_grid_discrete, w_distribution, width=3, align='center', edgecolor='k', alpha=0.7)
+    plt.xlabel("Discrete Final Wealth")
+    plt.ylabel("Probability")
+    plt.title("Discrete Distribution of Final Wealth")
     plt.grid(True, alpha=0.3)
     plt.show()
 
-    # ---------- (5) Plot the joint distribution of final wealth and final z (2D heatmap) ----------
+# ---------- (6) Calculate the joint discrete distribution of final wealth and final z ----------
+# Construct a two-dimensional array, with rows corresponding to discrete wealth (w_grid_discrete) and columns corresponding to discrete z (z_grid)
+    joint_distribution = np.zeros((len(w_grid_discrete), len(z_grid)))
+
+    for i in range(len(final_wealths)):
+        w = final_wealths[i]
+        z = final_zs[i]
+        # z comes from z_grid (after discretization), find the corresponding index
+        z_index = np.argmin(np.abs(z_grid - z))
+        if w <= w_grid_discrete[0]:
+            joint_distribution[0, z_index] += 1
+        elif w >= w_grid_discrete[-1]:
+            joint_distribution[-1, z_index] += 1
+        else:
+            idx = np.searchsorted(w_grid_discrete, w) - 1
+            lower = w_grid_discrete[idx]
+            upper = w_grid_discrete[idx+1]
+            weight_lower = (upper - w) / (upper - lower)
+            weight_upper = (w - lower) / (upper - lower)
+            joint_distribution[idx, z_index] += weight_lower
+            joint_distribution[idx+1, z_index] += weight_upper
+
+    joint_distribution /= len(final_wealths)
+
+# ---------- (7) Draw joint discrete distribution ----------
+# For intuitive display, we use imshow to draw a two-dimensional heat map. Note that imshow requires that the matrix rows correspond to the y-axis,
+# Therefore, we transpose joint_distribution here so that the x-axis is the wealth discrete points and the y-axis is the z discrete points.
     plt.figure(figsize=(8, 6))
-    plt.hist2d(final_wealths, final_zs, bins=[50, 50], density=True, cmap='viridis')
-    plt.colorbar(label="Density")
-    plt.xlabel("Final Wealth")
+    plt.imshow(joint_distribution.T, origin='lower', aspect='auto',
+               extent=[w_grid_discrete[0]-2, w_grid_discrete[-1]+2, z_grid[0], z_grid[-1]],
+               cmap='viridis')
+    plt.colorbar(label="Probability")
+    plt.xlabel("Final Wealth (Discrete)")
     plt.ylabel("Final z")
-    plt.title("Joint Distribution of Final Wealth and z")
+    plt.title("Joint Discrete Distribution of Final Wealth and z")
+    plt.xticks(w_grid_discrete)
+    plt.yticks(np.round(z_grid, 2))
     plt.show()
 
 
