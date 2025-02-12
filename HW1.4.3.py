@@ -18,10 +18,10 @@ def fetch_and_run(script_url):
     if response.status_code == 200:
         script_content = response.text
 
-        # 过滤掉可能的图片弹窗（如matplotlib）
+        # Filter out possible image pop-ups (such as matplotlib)
         script_content = script_content.replace("plt.show()", "")  
         
-        # 执行代码
+        # Executing Code
         exec(script_content, {"__name__": "__main__"})
     
     else:
