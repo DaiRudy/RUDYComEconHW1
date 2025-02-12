@@ -1,28 +1,39 @@
 import time
-import subprocess
+import requests
 
-def run_and_time(script_path):
+GITHUB_RAW_URLS = [
+    "https://raw.githubusercontent.com/DaiRudy/RUDYComEconHW1/main/HW1.3.2.py",
+    "https://raw.githubusercontent.com/DaiRudy/RUDYComEconHW1/main/HW1.4.1.py",
+    "https://raw.githubusercontent.com/DaiRudy/RUDYComEconHW1/main/HW1.4.2.py"
+]
+
+def fetch_and_run(script_url):
     """
-    Call an external Python script and count its running time (in seconds).
-    Returns the running time of the script.
+    Fetch a Python script from a GitHub raw URL and execute it.
+    Returns the execution time in seconds.
     """
     start = time.time()
-    # If necessary, you can change it to "python3" or an absolute path
-    subprocess.run(["python", script_path], check=True)
-    end = time.time()
     
+    response = requests.get(script_url)
+    if response.status_code == 200:
+        script_content = response.text
+
+        # 过滤掉可能的图片弹窗（如matplotlib）
+        script_content = script_content.replace("plt.show()", "")  
+        
+        # 执行代码
+        exec(script_content, {"__name__": "__main__"})
+    
+    else:
+        print(f"Failed to fetch {script_url}, Status Code: {response.status_code}")
+        return None
+
+    end = time.time()
     return end - start
 
 if __name__ == "__main__":
-    # Three scripts that need to be executed
-    # Change Directory if applicable
-    scripts = [
-        r"C:\Users\19782\OneDrive - University of Florida\Dropbox_Backup\Course\Fang\hw1\HW1.3.2.py",
-        r"C:\Users\19782\OneDrive - University of Florida\Dropbox_Backup\Course\Fang\hw1\HW1.4.1.py",
-        r"C:\Users\19782\OneDrive - University of Florida\Dropbox_Backup\Course\Fang\hw1\HW1.4.2.py"
-    ]
+    for url in GITHUB_RAW_URLS:
+        elapsed_time = fetch_and_run(url)
+        if elapsed_time is not None:
+            print(f"Executed {url}\nTime used: {elapsed_time:.4f} seconds\n")
 
-    # Execute one by one and print the running time
-    for script in scripts:
-        elapsed = run_and_time(script)
-        print(f"Script: {script}\nTime used: {elapsed:.4f} seconds\n")
